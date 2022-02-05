@@ -10,6 +10,31 @@ import (
 	"github.com/gempir/go-twitch-irc/v3"
 )
 
+type Platform struct {
+	name string
+}
+
+type Message struct {
+	nickname string
+	msg      string
+	platform Platform
+}
+
+var twitchPlatform = Platform{"TW"}
+var youtubePlatform = Platform{"YT"}
+
+func printMessage(msg Message, colorize func(string) string) {
+	fmt.Println(fmt.Sprintf("%s: %s", colorize(msg.nickname), msg.msg))
+}
+
+func makeBlue(m string) string {
+	return fmt.Sprintf("\033[1;34m%s\033[0m", m)
+}
+
+func makeRed(m string) string {
+	return fmt.Sprintf("\033[1;31m%s\033[0m", m)
+}
+
 func listenYoutube(wg sync.WaitGroup, streamLink string) {
 	continuation, cfg, error := YtChat.ParseInitialData(streamLink)
 	if error != nil {
@@ -23,8 +48,8 @@ func listenYoutube(wg sync.WaitGroup, streamLink string) {
 		}
 		continuation = newContinuation
 		for _, msg := range chat {
-			fmt.Print(msg.Timestamp, " | ")
-			fmt.Println(msg.AuthorName, ": ", msg.Message)
+			m := Message{msg.AuthorName, msg.Message, youtubePlatform}
+			printMessage(m, makeRed)
 		}
 	}
 }
@@ -33,7 +58,8 @@ func listenTwitch(wg sync.WaitGroup, channelName string) {
 	client := twitch.NewAnonymousClient()
 
 	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		fmt.Println(message.Message)
+		m := Message{message.User.DisplayName, message.Message, twitchPlatform}
+		printMessage(m, makeBlue)
 	})
 
 	client.Join(channelName)
