@@ -71,10 +71,16 @@ func listenTwitch(wg sync.WaitGroup, channelName string) {
 
 func runListeners(twitch string, youtubeLink string) {
 	var wg sync.WaitGroup
-	wg.Add(2)
 
-	go listenTwitch(wg, twitch)
-	go listenYoutube(wg, youtubeLink)
+	if twitch != "" {
+		wg.Add(1)
+		go listenTwitch(wg, twitch)
+	}
+
+	if youtubeLink != "" {
+		wg.Add(1)
+		go listenYoutube(wg, youtubeLink)
+	}
 
 	wg.Wait()
 }
@@ -83,7 +89,7 @@ func main() {
 	twitch := flag.String("twitch", "", "Twitch channel name")
 	youtubeLink := flag.String("youtube", "", "Youtube stream link")
 	flag.Parse()
-	if *twitch == "" || *youtubeLink == "" {
+	if *twitch == "" && *youtubeLink == "" {
 		fmt.Println("Bad run arguments")
 		os.Exit(0)
 	}
