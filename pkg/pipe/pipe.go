@@ -1,5 +1,7 @@
 package pipe
 
+import "fmt"
+
 // TODO: maybe platform must be in separate package
 type Platform struct {
 	Name string
@@ -8,7 +10,11 @@ type Platform struct {
 type Message struct {
 	Nickname string
 	Text     string
-	Platform Platform
+	Platform
+}
+
+func (m *Message) FullText() string {
+	return fmt.Sprintf(fmt.Sprintf("%s: %s\n", m.Nickname, m.Text))
 }
 
 type Pipe interface {

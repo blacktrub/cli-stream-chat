@@ -12,8 +12,8 @@ import (
 	"github.com/gempir/go-twitch-irc/v3"
 )
 
-var TwitchPlatform = pipe.Platform{pipe.Twitch}
-var YoutubePlatform = pipe.Platform{pipe.Youtube}
+var TwitchPlatform = pipe.Platform{Name: pipe.Twitch}
+var YoutubePlatform = pipe.Platform{Name: pipe.Youtube}
 
 func printMessage(msg pipe.Message, colorize func(string) string) {
 	fmt.Println(fmt.Sprintf("%s: %s", colorize(msg.Nickname), msg.Text))
@@ -72,12 +72,18 @@ func runListeners(twitch string, youtubeLink string, pipes pipe.Pipes) {
 func main() {
 	twitch := flag.String("twitch", "", "Twitch channel name")
 	youtubeLink := flag.String("youtube", "", "Youtube stream link")
+	keepLog := flag.Bool("keep-log", false, "Keep stream log")
 	flag.Parse()
 
 	if *twitch == "" && *youtubeLink == "" {
 		fmt.Println("Bad run arguments")
 		os.Exit(0)
 	}
+
 	pipes := pipe.Pipes{&pipe.Stdout{}}
+	if *keepLog {
+		pipes = append(pipes, &pipe.Log{Path: "/home/bt/stream/log"})
+	}
+
 	runListeners(*twitch, *youtubeLink, pipes)
 }
