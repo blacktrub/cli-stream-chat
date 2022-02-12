@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"cli-stream-chat/pkg/pipe"
@@ -73,6 +74,7 @@ func main() {
 	twitch := flag.String("twitch", "", "Twitch channel name")
 	youtubeLink := flag.String("youtube", "", "Youtube stream link")
 	keepLog := flag.Bool("keep-log", false, "Keep stream log")
+	devices := flag.String("devices", "", "List tty devices")
 	flag.Parse()
 
 	if *twitch == "" && *youtubeLink == "" {
@@ -83,6 +85,13 @@ func main() {
 	pipes := pipe.Pipes{&pipe.Stdout{}}
 	if *keepLog {
 		pipes = append(pipes, &pipe.Log{Path: "/home/bt/stream/log"})
+	}
+
+	if *devices != "" {
+		deviceArr := strings.Split(*devices, ",")
+		for i := 0; i < len(deviceArr); i++ {
+			pipes = append(pipes, &pipe.Device{Path: deviceArr[i]})
+		}
 	}
 
 	runListeners(*twitch, *youtubeLink, pipes)

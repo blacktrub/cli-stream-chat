@@ -26,7 +26,7 @@ func (s *Log) Write(msg Message) {
 		fmt.Println("problem when open file", err)
 		return
 	}
-	_, err = file.WriteString(msg.FullText())
+	_, err = file.WriteString(msg.FullText() + "\n")
 	if err != nil {
 		fmt.Println("problem with write to file", err)
 		return
