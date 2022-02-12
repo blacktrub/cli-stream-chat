@@ -12,22 +12,14 @@ import (
 	"github.com/gempir/go-twitch-irc/v3"
 )
 
-var TwitchPlatform = pipe.Platform{"TW"}
-var YoutubePlatform = pipe.Platform{"YT"}
+var TwitchPlatform = pipe.Platform{pipe.Twitch}
+var YoutubePlatform = pipe.Platform{pipe.Youtube}
 
 func printMessage(msg pipe.Message, colorize func(string) string) {
 	fmt.Println(fmt.Sprintf("%s: %s", colorize(msg.Nickname), msg.Text))
 }
 
-func makeBlue(m string) string {
-	return fmt.Sprintf("\033[1;34m%s\033[0m", m)
-}
-
-func makeRed(m string) string {
-	return fmt.Sprintf("\033[1;31m%s\033[0m", m)
-}
-
-func listenYoutube(wg sync.WaitGroup, streamLink string) {
+func listenYoutube(wg sync.WaitGroup, streamLink string, pipes pipe.Pipes) {
 	continuation, cfg, error := YtChat.ParseInitialData(streamLink)
 	if error != nil {
 		fmt.Println("error youtube", error)
@@ -41,17 +33,17 @@ func listenYoutube(wg sync.WaitGroup, streamLink string) {
 		continuation = newContinuation
 		for _, msg := range chat {
 			m := pipe.Message{msg.AuthorName, msg.Message, YoutubePlatform}
-			printMessage(m, makeRed)
+			pipe.WriteAll(pipes, m)
 		}
 	}
 }
 
-func listenTwitch(wg sync.WaitGroup, channelName string) {
+func listenTwitch(wg sync.WaitGroup, channelName string, pipes pipe.Pipes) {
 	client := twitch.NewAnonymousClient()
 
 	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		m := pipe.Message{message.User.DisplayName, message.Message, TwitchPlatform}
-		printMessage(m, makeBlue)
+		pipe.WriteAll(pipes, m)
 	})
 
 	client.Join(channelName)
@@ -61,17 +53,17 @@ func listenTwitch(wg sync.WaitGroup, channelName string) {
 	}
 }
 
-func runListeners(twitch string, youtubeLink string) {
+func runListeners(twitch string, youtubeLink string, pipes pipe.Pipes) {
 	var wg sync.WaitGroup
 
 	if twitch != "" {
 		wg.Add(1)
-		go listenTwitch(wg, twitch)
+		go listenTwitch(wg, twitch, pipes)
 	}
 
 	if youtubeLink != "" {
 		wg.Add(1)
-		go listenYoutube(wg, youtubeLink)
+		go listenYoutube(wg, youtubeLink, pipes)
 	}
 
 	wg.Wait()
@@ -81,9 +73,11 @@ func main() {
 	twitch := flag.String("twitch", "", "Twitch channel name")
 	youtubeLink := flag.String("youtube", "", "Youtube stream link")
 	flag.Parse()
+
 	if *twitch == "" && *youtubeLink == "" {
 		fmt.Println("Bad run arguments")
 		os.Exit(0)
 	}
-	runListeners(*twitch, *youtubeLink)
+	pipes := pipe.Pipes{&pipe.Stdout{}}
+	runListeners(*twitch, *youtubeLink, pipes)
 }
