@@ -6,25 +6,17 @@ import (
 	"os"
 	"sync"
 
+	"cli-stream-chat/pkg/pipe"
+
 	"github.com/abhinavxd/youtube-live-chat-downloader/v2"
 	"github.com/gempir/go-twitch-irc/v3"
 )
 
-type Platform struct {
-	name string
-}
+var TwitchPlatform = pipe.Platform{"TW"}
+var YoutubePlatform = pipe.Platform{"YT"}
 
-type Message struct {
-	nickname string
-	msg      string
-	platform Platform
-}
-
-var twitchPlatform = Platform{"TW"}
-var youtubePlatform = Platform{"YT"}
-
-func printMessage(msg Message, colorize func(string) string) {
-	fmt.Println(fmt.Sprintf("%s: %s", colorize(msg.nickname), msg.msg))
+func printMessage(msg pipe.Message, colorize func(string) string) {
+	fmt.Println(fmt.Sprintf("%s: %s", colorize(msg.Nickname), msg.Text))
 }
 
 func makeBlue(m string) string {
@@ -48,7 +40,7 @@ func listenYoutube(wg sync.WaitGroup, streamLink string) {
 		}
 		continuation = newContinuation
 		for _, msg := range chat {
-			m := Message{msg.AuthorName, msg.Message, youtubePlatform}
+			m := pipe.Message{msg.AuthorName, msg.Message, YoutubePlatform}
 			printMessage(m, makeRed)
 		}
 	}
@@ -58,7 +50,7 @@ func listenTwitch(wg sync.WaitGroup, channelName string) {
 	client := twitch.NewAnonymousClient()
 
 	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		m := Message{message.User.DisplayName, message.Message, twitchPlatform}
+		m := pipe.Message{message.User.DisplayName, message.Message, TwitchPlatform}
 		printMessage(m, makeBlue)
 	})
 
