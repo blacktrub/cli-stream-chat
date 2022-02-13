@@ -20,4 +20,5 @@ You must have golang compiler for running
 - Write to twitch 
 - Write to youtube (seems impossible) 
 - terminal ui
+- how to distribute app
 
