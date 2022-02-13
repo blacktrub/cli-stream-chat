@@ -33,7 +33,7 @@ func listenYoutube(wg sync.WaitGroup, streamLink string, pipes pipe.Pipes) {
 		}
 		continuation = newContinuation
 		for _, msg := range chat {
-			m := pipe.Message{msg.AuthorName, msg.Message, YoutubePlatform}
+			m := pipe.Message{Nickname: msg.AuthorName, Text: msg.Message, Platform: YoutubePlatform}
 			pipe.WriteAll(pipes, m)
 		}
 	}
@@ -43,7 +43,7 @@ func listenTwitch(wg sync.WaitGroup, channelName string, pipes pipe.Pipes) {
 	client := twitch.NewAnonymousClient()
 
 	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		m := pipe.Message{message.User.DisplayName, message.Message, TwitchPlatform}
+		m := pipe.Message{Nickname: message.User.DisplayName, Text: message.Message, Platform: TwitchPlatform}
 		pipe.WriteAll(pipes, m)
 	})
 
