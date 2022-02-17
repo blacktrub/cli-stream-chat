@@ -85,6 +85,7 @@ func main() {
 
 	pipes := pipe.Pipes{&pipe.Stdout{}}
 	if *keepLog {
+        // TODO: move logs file path to a flag, if it is present, then write log
 		pipes = append(pipes, &pipe.Log{Path: "/home/bt/stream/log"})
 	}
 
