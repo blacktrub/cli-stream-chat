@@ -55,6 +55,7 @@ type Pipes []Pipe
 const Twitch string = "TW"
 const Youtube string = "YT"
 
+// TODO: I think I can use channel to do this work
 func WriteAll(pipes Pipes, msg Message) {
 	for i := 0; i < len(pipes); i++ {
 		pipes[i].Write(msg)

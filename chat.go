@@ -20,6 +20,7 @@ func printMessage(msg pipe.Message, colorize func(string) string) {
 	fmt.Println(fmt.Sprintf("%s: %s", colorize(msg.Nickname), msg.Text))
 }
 
+// TODO: create a module for platforms
 func listenYoutube(wg sync.WaitGroup, streamLink string, pipes pipe.Pipes) {
 	continuation, cfg, error := YtChat.ParseInitialData(streamLink)
 	if error != nil {
