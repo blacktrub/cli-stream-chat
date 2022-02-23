@@ -13,6 +13,8 @@ import (
 	"github.com/gempir/go-twitch-irc/v3"
 )
 
+type MsgStream chan pipe.Message
+
 var TwitchPlatform = pipe.Platform{Name: pipe.Twitch}
 var YoutubePlatform = pipe.Platform{Name: pipe.Youtube}
 
@@ -21,7 +23,7 @@ func printMessage(msg pipe.Message, colorize func(string) string) {
 }
 
 // TODO: create a module for platforms
-func listenYoutube(wg sync.WaitGroup, streamLink string, pipes pipe.Pipes) {
+func listenYoutube(wg sync.WaitGroup, streamLink string, pipes pipe.Pipes, ch MsgStream) {
 	continuation, cfg, error := YtChat.ParseInitialData(streamLink)
 	if error != nil {
 		fmt.Println("error youtube", error)
@@ -34,18 +36,16 @@ func listenYoutube(wg sync.WaitGroup, streamLink string, pipes pipe.Pipes) {
 		}
 		continuation = newContinuation
 		for _, msg := range chat {
-			m := pipe.Message{Nickname: msg.AuthorName, Text: msg.Message, Platform: YoutubePlatform}
-			pipe.WriteAll(pipes, m)
+			ch <- pipe.Message{Nickname: msg.AuthorName, Text: msg.Message, Platform: YoutubePlatform}
 		}
 	}
 }
 
-func listenTwitch(wg sync.WaitGroup, channelName string, pipes pipe.Pipes) {
+func listenTwitch(wg sync.WaitGroup, channelName string, pipes pipe.Pipes, ch MsgStream) {
 	client := twitch.NewAnonymousClient()
 
 	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		m := pipe.Message{Nickname: message.User.DisplayName, Text: message.Message, Platform: TwitchPlatform}
-		pipe.WriteAll(pipes, m)
+		ch <- pipe.Message{Nickname: message.User.DisplayName, Text: message.Message, Platform: TwitchPlatform}
 	})
 
 	client.Join(channelName)
@@ -55,20 +55,27 @@ func listenTwitch(wg sync.WaitGroup, channelName string, pipes pipe.Pipes) {
 	}
 }
 
-func runListeners(twitch string, youtubeLink string, pipes pipe.Pipes) {
+func runListeners(twitch string, youtubeLink string, pipes pipe.Pipes, ch MsgStream) {
 	var wg sync.WaitGroup
 
 	if twitch != "" {
 		wg.Add(1)
-		go listenTwitch(wg, twitch, pipes)
+		go listenTwitch(wg, twitch, pipes, ch)
 	}
 
 	if youtubeLink != "" {
 		wg.Add(1)
-		go listenYoutube(wg, youtubeLink, pipes)
+		go listenYoutube(wg, youtubeLink, pipes, ch)
 	}
 
 	wg.Wait()
+	close(ch)
+}
+
+func listenStream(ch MsgStream, pipes pipe.Pipes) {
+	for msg := range ch {
+		pipe.WriteAll(pipes, msg)
+	}
 }
 
 func main() {
@@ -96,5 +103,7 @@ func main() {
 		}
 	}
 
-	runListeners(*twitch, *youtubeLink, pipes)
+	msgStream := make(chan pipe.Message)
+	go listenStream(msgStream, pipes)
+	runListeners(*twitch, *youtubeLink, pipes, msgStream)
 }
