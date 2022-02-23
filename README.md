@@ -10,7 +10,11 @@ It's a terminal client to see your online stream chat.
 ## How to use
 Clone this repo and run:
 ```
-go run chat.go --twitch <twitch_channel> --youtube <link_to_your_youtube_stream> --devices /dev/tty1,/dev/tty2 --keep-log true/false
+go run chat.go 
+--twitch <twitch_channel> 
+--youtube <link_to_your_youtube_stream> 
+--devices /dev/tty1,/dev/tty2 
+--log /path/to/your/log/directory
 ```
 
 You must have golang compiler for running

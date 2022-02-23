@@ -74,7 +74,7 @@ func runListeners(twitch string, youtubeLink string, pipes pipe.Pipes) {
 func main() {
 	twitch := flag.String("twitch", "", "Twitch channel name")
 	youtubeLink := flag.String("youtube", "", "Youtube stream link")
-	keepLog := flag.Bool("keep-log", false, "Keep stream log")
+	logPath := flag.String("log", "", "Save stream log to file")
 	devices := flag.String("devices", "", "List tty devices")
 	flag.Parse()
 
@@ -84,9 +84,9 @@ func main() {
 	}
 
 	pipes := pipe.Pipes{&pipe.Stdout{}}
-	if *keepLog {
-        // TODO: move logs file path to a flag, if it is present, then write log
-		pipes = append(pipes, &pipe.Log{Path: "/home/bt/stream/log"})
+	if *logPath != "" {
+		// TODO: validate log path
+		pipes = append(pipes, &pipe.Log{Path: *logPath})
 	}
 
 	if *devices != "" {
