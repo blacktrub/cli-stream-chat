@@ -8,71 +8,29 @@ import (
 	"sync"
 
 	"cli-stream-chat/pkg/pipe"
-
-	"github.com/abhinavxd/youtube-live-chat-downloader/v2"
-	"github.com/gempir/go-twitch-irc/v3"
+	"cli-stream-chat/pkg/provider"
 )
 
-type MsgStream chan pipe.Message
-
-var TwitchPlatform = pipe.Platform{Name: pipe.Twitch}
-var YoutubePlatform = pipe.Platform{Name: pipe.Youtube}
-
-func printMessage(msg pipe.Message, colorize func(string) string) {
-	fmt.Println(fmt.Sprintf("%s: %s", colorize(msg.Nickname), msg.Text))
-}
-
-// TODO: create a module for platforms
-func listenYoutube(wg sync.WaitGroup, streamLink string, pipes pipe.Pipes, ch MsgStream) {
-	continuation, cfg, error := YtChat.ParseInitialData(streamLink)
-	if error != nil {
-		fmt.Println("error youtube", error)
-	}
-	for {
-		chat, newContinuation, error := YtChat.FetchContinuationChat(continuation, cfg)
-		if error != nil {
-			fmt.Println("error youtube", error)
-			continue
-		}
-		continuation = newContinuation
-		for _, msg := range chat {
-			ch <- pipe.Message{Nickname: msg.AuthorName, Text: msg.Message, Platform: YoutubePlatform}
-		}
-	}
-}
-
-func listenTwitch(wg sync.WaitGroup, channelName string, pipes pipe.Pipes, ch MsgStream) {
-	client := twitch.NewAnonymousClient()
-
-	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		ch <- pipe.Message{Nickname: message.User.DisplayName, Text: message.Message, Platform: TwitchPlatform}
-	})
-
-	client.Join(channelName)
-	err := client.Connect()
-	if err != nil {
-		panic(err)
-	}
-}
-
-func runListeners(twitch string, youtubeLink string, pipes pipe.Pipes, ch MsgStream) {
+func runListeners(twitch string, youtubeLink string, pipes pipe.Pipes, ch pipe.MsgStream) {
 	var wg sync.WaitGroup
 
 	if twitch != "" {
 		wg.Add(1)
-		go listenTwitch(wg, twitch, pipes, ch)
+		tw := provider.Twitch{}
+		go tw.Listen(&wg, twitch, pipes, ch)
 	}
 
 	if youtubeLink != "" {
 		wg.Add(1)
-		go listenYoutube(wg, youtubeLink, pipes, ch)
+		yt := provider.Youtube{}
+		go yt.Listen(&wg, youtubeLink, pipes, ch)
 	}
 
 	wg.Wait()
 	close(ch)
 }
 
-func listenStream(ch MsgStream, pipes pipe.Pipes) {
+func listenStream(ch pipe.MsgStream, pipes pipe.Pipes) {
 	for msg := range ch {
 		pipe.WriteAll(pipes, msg)
 	}

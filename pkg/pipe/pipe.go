@@ -14,6 +14,8 @@ type Message struct {
 	Platform
 }
 
+type MsgStream chan Message
+
 func (m *Message) FullText() string {
 	return fmt.Sprintf(fmt.Sprintf("%s: %s", m.Nickname, m.Text))
 }
@@ -54,6 +56,9 @@ type Pipes []Pipe
 
 const Twitch string = "TW"
 const Youtube string = "YT"
+
+var TwitchPlatform = Platform{Name: Twitch}
+var YoutubePlatform = Platform{Name: Youtube}
 
 // TODO: I think I can use channel to do this work
 func WriteAll(pipes Pipes, msg Message) {
