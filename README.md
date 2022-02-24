@@ -20,6 +20,7 @@ go run chat.go
 You must have golang compiler for running
 
 ## TODO features
+- Fetch an active youtube live stream link by channel name
 - Support twitch stikers
 - Write to twitch 
 - Write to youtube (seems impossible) 
