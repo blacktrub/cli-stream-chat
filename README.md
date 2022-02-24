@@ -20,10 +20,11 @@ go run chat.go
 You must have golang compiler for running
 
 ## TODO features
-- Fetch an active youtube live stream link by channel name
+- Fetch an active youtube live stream link by channel name (We probably can use [that](https://developers.google.com/youtube/v3/live/docs/liveBroadcasts))
 - Support twitch stikers
 - Write to twitch 
-- Write to youtube (seems impossible) 
+- Write to youtube ([API](https://developers.google.com/youtube/v3/live/docs/liveChatMessages/insert)) 
+- Should we use YouTube Live Streaming API for everything?
 - terminal ui
 - how to distribute app
 
