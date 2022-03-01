@@ -36,6 +36,7 @@ func BuildKittyStiker(name string) string {
 	return out
 }
 
+// TODO: add more twitch stikers
 func GetSupportedNames() []string {
 	return []string{
 		"Kappa",
