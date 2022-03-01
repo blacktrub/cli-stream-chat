@@ -35,3 +35,9 @@ func BuildKittyStiker(name string) string {
 	out = out + "\033\\"
 	return out
 }
+
+func GetSupportedNames() []string {
+	return []string{
+		"Kappa",
+	}
+}

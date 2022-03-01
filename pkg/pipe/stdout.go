@@ -8,5 +8,5 @@ import (
 type Stdout struct{}
 
 func (s *Stdout) Write(msg msg.Message) {
-	fmt.Println(msg.ColorizedText())
+	fmt.Println(msg.PrettyText())
 }

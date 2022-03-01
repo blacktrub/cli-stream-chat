@@ -17,7 +17,7 @@ func (s *Device) Write(msg msg.Message) {
 		return
 	}
 	defer device.Close()
-	_, err = device.WriteString(msg.ColorizedText() + "\n")
+	_, err = device.WriteString(msg.PrettyText() + "\n")
 	if err != nil {
 		fmt.Println("problem with write to device", err)
 		return

@@ -2,7 +2,9 @@ package msg
 
 import (
 	"cli-stream-chat/pkg/platform"
+	"cli-stream-chat/pkg/sticker"
 	"fmt"
+	"strings"
 )
 
 type Message struct {
@@ -17,9 +19,23 @@ func (m *Message) FullText() string {
 	return fmt.Sprintf(fmt.Sprintf("%s: %s", m.Nickname, m.Text))
 }
 
-func (m *Message) ColorizedText() string {
+func (m *Message) PrettyText() string {
+	// TODO: use only for Kitty terminal
+	text := findAndReplaceStikers(m.Text)
 	colorize := getColorize(m.Platform)
-	return fmt.Sprintf("%s: %s", colorize(m.Nickname), m.Text)
+	return fmt.Sprintf("%s: %s", colorize(m.Nickname), text)
+}
+
+func findAndReplaceStikers(txt string) string {
+	stickers := sticker.GetSupportedNames()
+	for _, name := range stickers {
+		if !strings.Contains(txt, name) {
+			continue
+		}
+		buildedSticker := sticker.BuildKittyStiker(name)
+		txt = strings.ReplaceAll(txt, name, buildedSticker)
+	}
+	return txt
 }
 
 func getColorize(p platform.Platform) func(string) string {
