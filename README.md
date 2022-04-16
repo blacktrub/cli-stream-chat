@@ -1,6 +1,9 @@
 # About project
 It's a terminal client to see your online stream chat. 
 
+## Demo
+![cli-chat-demo2](https://user-images.githubusercontent.com/16855504/163690117-bc468238-7306-49e8-960e-d752f17a6e15.gif)
+
 ## Supported features
 - YouTube chat
 - Twitch chat 
