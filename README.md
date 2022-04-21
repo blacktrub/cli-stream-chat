@@ -13,7 +13,7 @@ It's a terminal client to see your online stream chat.
 ## How to use
 Clone this repo and run:
 ```
-go run chat.go 
+go run cmd/main.go 
 --twitch <twitch_channel> 
 --youtube <link_to_your_youtube_stream> 
 --devices /dev/tty1,/dev/tty2 

@@ -1,6 +1,7 @@
 package pipe
 
 import (
+	"cli-stream-chat/internal"
 	"fmt"
 	"os"
 	"time"
@@ -19,18 +20,18 @@ func (s *Log) fullpath() string {
 	return s.Path + "/" + s.filename()
 }
 
-func (s *Log) Write(msg Message) {
+func (s *Log) Write(m internal.Message) error {
+	// TODO: init log with file once, so we don't check file on every write
 	file, err := getOrCreateFile(s.fullpath())
 	defer file.Close()
 	if err != nil {
-		fmt.Println("problem when open file", err)
-		return
+		return fmt.Errorf("problem when open file: %w", err)
 	}
-	_, err = file.WriteString(msg.FullText() + "\n")
+	_, err = file.WriteString(m.FullText() + "\n")
 	if err != nil {
-		fmt.Println("problem with write to file", err)
-		return
+		return fmt.Errorf("problem with write to file: %w", err)
 	}
+	return nil
 }
 
 func getOrCreateFile(path string) (*os.File, error) {
