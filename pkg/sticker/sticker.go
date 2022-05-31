@@ -324,14 +324,23 @@ func getSupportedNames() []string {
 	}
 }
 
-func FindAndReplace(txt string) string {
+func FindAndReplace(text string) string {
+	if !isKitty() {
+		return text
+	}
+
 	stickers := getSupportedNames()
 	for _, name := range stickers {
-		if !strings.Contains(txt, name) {
+		if !strings.Contains(text, name) {
 			continue
 		}
 		buildedSticker := buildKittyStiker(name)
-		txt = strings.ReplaceAll(txt, name, buildedSticker)
+		text = strings.ReplaceAll(text, name, buildedSticker)
 	}
-	return txt
+	return text
+}
+
+func isKitty() bool {
+	term := os.Getenv("TERM")
+	return term == "xterm-kitty"
 }
