@@ -40,8 +40,8 @@ func buildKittyStiker(name string) string {
 		chunkSize := 4096
 
 		if len(content) > chunkSize {
-			chunk = content[:4096]
-			content = content[4096:]
+			chunk = content[:chunkSize]
+			content = content[chunkSize:]
 			m = "1"
 		} else {
 			chunk = content
