@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // TODO: do not use relative path
@@ -22,7 +23,7 @@ func readStickerFile(name string) ([]byte, error) {
 	return data, nil
 }
 
-func BuildKittyStiker(name string) string {
+func buildKittyStiker(name string) string {
 	content, err := readStickerFile(name)
 	if err != nil {
 		return name
@@ -57,7 +58,7 @@ func BuildKittyStiker(name string) string {
 	return out
 }
 
-func GetSupportedNames() []string {
+func getSupportedNames() []string {
 	return []string{
 		"Kappa",
 		"LUL",
@@ -321,4 +322,16 @@ func GetSupportedNames() []string {
 		":(",
 		":)",
 	}
+}
+
+func FindAndReplace(txt string) string {
+	stickers := getSupportedNames()
+	for _, name := range stickers {
+		if !strings.Contains(txt, name) {
+			continue
+		}
+		buildedSticker := buildKittyStiker(name)
+		txt = strings.ReplaceAll(txt, name, buildedSticker)
+	}
+	return txt
 }
