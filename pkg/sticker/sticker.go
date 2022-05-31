@@ -1,3 +1,7 @@
+/*
+Kitty image protocol - https://sw.kovidgoyal.net/kitty/graphics-protocol/
+*/
+
 package sticker
 
 import (
@@ -47,7 +51,7 @@ func buildKittyStiker(name string) string {
 
 		// TODO: delete hardcode
 		out = out + "\033_G"
-		out = out + fmt.Sprintf("m=%s,a=T,f=100;", m)
+		out = out + fmt.Sprintf("m=%s,a=T,f=100,r=1;", m)
 		out = out + stringToBase64(chunk)
 		out = out + "\033\\"
 
