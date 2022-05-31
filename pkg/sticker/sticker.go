@@ -2,6 +2,7 @@ package sticker
 
 import (
 	b64 "encoding/base64"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -28,11 +29,31 @@ func BuildKittyStiker(name string) string {
 	}
 
 	var out string
-	// TODO: delete hardcode
-	out = out + "\033_G"
-	out = out + "m=0,a=T,f=100;"
-	out = out + stringToBase64(content)
-	out = out + "\033\\"
+	for {
+		var chunk []byte
+		var m string
+		chunkSize := 4096
+
+		if len(content) > chunkSize {
+			chunk = content[:4096]
+			content = content[4096:]
+			m = "1"
+		} else {
+			chunk = content
+			content = []byte{}
+			m = "0"
+		}
+
+		// TODO: delete hardcode
+		out = out + "\033_G"
+		out = out + fmt.Sprintf("m=%s,a=T,f=100;", m)
+		out = out + stringToBase64(chunk)
+		out = out + "\033\\"
+
+		if len(content) == 0 {
+			break
+		}
+	}
 	return out
 }
 
