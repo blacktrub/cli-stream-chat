@@ -37,6 +37,7 @@ func getRandomColor() int {
 }
 
 func getColors() []int {
+    // TODO: add more colors
 	return []int{
 		34,
 		31,
