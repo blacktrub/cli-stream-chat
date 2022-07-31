@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"cli-stream-chat/internal/sticker"
 	"fmt"
 )
 
@@ -22,7 +23,8 @@ func (m *Message) FullText() string {
 }
 
 func (m *Message) ColorizedText() string {
-	return fmt.Sprintf("%s: %s", colorizer(m.Platform)(m.Nickname), m.Text)
+    text := sticker.FindAndReplace(m.Text)
+	return fmt.Sprintf("%s: %s", colorizer(m.Platform)(m.Nickname), text)
 }
 
 func colorizer(p Platform) func(string) string {
