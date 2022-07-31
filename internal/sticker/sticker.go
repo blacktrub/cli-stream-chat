@@ -305,7 +305,6 @@ func getSupportedNames() []string {
 		"BCWarrior",
 		"MrDestructoid",
 		"JonCarnage",
-		"Kappa",
 		"RedCoat",
 		"TheRinger",
 		"StoneLightning",
@@ -334,14 +333,18 @@ func FindAndReplace(text string) string {
 	}
 
 	stickers := getSupportedNames()
-	for _, name := range stickers {
-		if !strings.Contains(text, name) {
-			continue
+	words := strings.Split(text, " ")
+	for i := 0; i < len(words); i++ {
+		word := words[i]
+		for _, name := range stickers {
+			if name != word {
+				continue
+			}
+			buildedSticker := buildKittyStiker(name)
+			words[i] = buildedSticker
 		}
-		buildedSticker := buildKittyStiker(name)
-		text = strings.ReplaceAll(text, name, buildedSticker)
 	}
-	return text
+	return strings.Join(words, " ")
 }
 
 func isKitty() bool {
