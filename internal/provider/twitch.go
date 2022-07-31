@@ -4,6 +4,7 @@ import (
 	"cli-stream-chat/internal"
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/gempir/go-twitch-irc/v3"
 )
@@ -22,7 +23,9 @@ func NewTwitchProvider(channel string) *Twitch {
 
 func (t *Twitch) Listen(ctx context.Context, out chan internal.Message) error {
 	t.client.OnPrivateMessage(func(message twitch.PrivateMessage) {
+		userId, _ := strconv.Atoi(message.User.ID)
 		out <- internal.Message{
+			UserId:   userId,
 			Nickname: message.User.DisplayName,
 			Text:     message.Message,
 			Platform: internal.TwitchPlatform,
