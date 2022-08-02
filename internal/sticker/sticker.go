@@ -1,7 +1,3 @@
-/*
-Kitty image protocol - https://sw.kovidgoyal.net/kitty/graphics-protocol/
-*/
-
 package sticker
 
 import (
@@ -36,7 +32,7 @@ func FindAndReplace(text string) string {
 
 func buildKittySticker(name string) string {
 	path := filepath.Join(StickersPath, name+".png")
-	return image.Build(name, path)
+	return image.Build(name, path, image.NullColumns)
 
 }
 

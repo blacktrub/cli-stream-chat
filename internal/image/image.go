@@ -1,3 +1,7 @@
+/*
+Kitty image protocol - https://sw.kovidgoyal.net/kitty/graphics-protocol/
+*/
+
 package image
 
 import (
@@ -6,11 +10,13 @@ import (
 	"os"
 )
 
+const NullColumns int = 0
+
 func stringToBase64(content []byte) string {
 	return b64.StdEncoding.EncodeToString(content)
 }
 
-func Build(name, path string) string {
+func Build(name, path string, columns int) string {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return name
@@ -34,7 +40,11 @@ func Build(name, path string) string {
 
 		// TODO: delete hardcode
 		out = out + "\033_G"
-		out = out + fmt.Sprintf("m=%s,a=T,f=100,r=1;", m)
+		if columns == NullColumns {
+			out = out + fmt.Sprintf("m=%s,a=T,f=100,r=1;", m)
+		} else {
+			out = out + fmt.Sprintf("m=%s,a=T,f=100,r=1,c=%d;", m, columns)
+		}
 		out = out + stringToBase64(chunk)
 		out = out + "\033\\"
 
