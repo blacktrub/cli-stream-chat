@@ -13,7 +13,7 @@ import (
 )
 
 // TODO: do not use relative path
-var StickersPath = "./pic"
+var StickersPath = "./pic/stickers"
 
 func stringToBase64(content []byte) string {
 	return b64.StdEncoding.EncodeToString(content)
