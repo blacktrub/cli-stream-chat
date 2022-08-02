@@ -13,6 +13,7 @@ const (
 )
 
 type Message struct {
+	UserId   int
 	Nickname string
 	Text     string
 	Platform Platform
@@ -23,25 +24,21 @@ func (m *Message) FullText() string {
 }
 
 func (m *Message) ColorizedText() string {
-    text := sticker.FindAndReplace(m.Text)
-	return fmt.Sprintf("%s: %s", colorizer(m.Platform)(m.Nickname), text)
+	text := sticker.FindAndReplace(m.Text)
+	return fmt.Sprintf("%s: %s", colorizer(m.Platform)(m.UserId, m.Nickname), text)
 }
 
-func colorizer(p Platform) func(string) string {
+func colorizer(p Platform) func(int, string) string {
 	switch p {
 	case TwitchPlatform:
-		return makeBlue
+		return Crl.Do
 	case YoutubePlatform:
 		return makeRed
 	default:
-		return func(m string) string { return m }
+		return func(i int, m string) string { return m }
 	}
 }
 
-func makeBlue(m string) string {
-	return fmt.Sprintf("\033[1;34m%s\033[0m", m)
-}
-
-func makeRed(m string) string {
+func makeRed(id int, m string) string {
 	return fmt.Sprintf("\033[1;31m%s\033[0m", m)
 }
