@@ -37,9 +37,13 @@ func getRandomColor() int {
 }
 
 func getColors() []int {
-    // TODO: add more colors
+	// TODO: add more colors
 	return []int{
 		34,
 		31,
 	}
 }
+
+// TODO: naming sucks
+// TODO: do not use as a global variable
+var Crl = Colorizer{make(map[int]int)}

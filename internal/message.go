@@ -29,10 +29,9 @@ func (m *Message) ColorizedText() string {
 }
 
 func colorizer(p Platform) func(int, string) string {
-	crl := Colorizer{make(map[int]int)}
 	switch p {
 	case TwitchPlatform:
-		return crl.Do
+		return Crl.Do
 	case YoutubePlatform:
 		return makeRed
 	default:
