@@ -6,8 +6,6 @@ import (
 	"math/rand"
 )
 
-const defaultColor = 34
-
 type Colorizer struct {
 	mem map[int]int
 }
@@ -37,11 +35,11 @@ func getRandomColor() int {
 }
 
 func getColors() []int {
-	// TODO: add more colors
-	return []int{
-		34,
-		31,
+	var colors []int
+	for i := 30; i < 38; i++ {
+		colors = append(colors, i)
 	}
+	return colors
 }
 
 // TODO: naming sucks
