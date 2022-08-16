@@ -14,8 +14,12 @@ package sticker
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 // TODO: it's Twitch ID
@@ -23,7 +27,8 @@ var btvUserId = 571574557
 
 type BTTVSticker struct {
 	id   string
-	code string
+	Code string
+	Ext  string
 }
 
 type channelStickersResponse struct {
@@ -66,7 +71,7 @@ func getGlobalStickers() []BTTVSticker {
 	var stickers []BTTVSticker
 	for i := 0; i < len(data); i++ {
 		s := data[i]
-		stickers = append(stickers, BTTVSticker{s.ID, s.Code})
+		stickers = append(stickers, BTTVSticker{s.ID, s.Code, s.ImageType})
 	}
 	return stickers
 
@@ -86,7 +91,7 @@ func getUserStickers(userId int) []BTTVSticker {
 	var stickers []BTTVSticker
 	for i := 0; i < len(data.SharedEmotes); i++ {
 		s := data.SharedEmotes[i]
-		stickers = append(stickers, BTTVSticker{s.ID, s.Code})
+		stickers = append(stickers, BTTVSticker{s.ID, s.Code, s.ImageType})
 	}
 	return stickers
 }
@@ -97,4 +102,39 @@ func GetBTTVStickers() []BTTVSticker {
 	stickers = append(stickers, getGlobalStickers()...)
 	stickers = append(stickers, getUserStickers(btvUserId)...)
 	return stickers
+}
+
+func (s *BTTVSticker) filename() string {
+	return filepath.Join(StickersPath, s.Code+"."+s.Ext)
+}
+
+func (s BTTVSticker) CheckIfExists() error {
+	downloadSticker(s)
+	_, err := os.ReadFile(s.filename())
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			err = downloadSticker(s)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func downloadSticker(s BTTVSticker) error {
+	resp, err := http.Get(fmt.Sprintf("https://cdn.betterttv.net/emote/%s/2x", s.id))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	f, err := os.Create(s.filename())
+	defer f.Close()
+	_, err = io.Copy(f, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
 }

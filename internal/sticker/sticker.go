@@ -16,6 +16,7 @@ func FindAndReplace(text string) string {
 	}
 
 	stickers := getSupportedNames()
+	bttvStickers := GetBTTVStickers()
 	words := strings.Split(text, " ")
 	for i := 0; i < len(words); i++ {
 		word := words[i]
@@ -23,15 +24,29 @@ func FindAndReplace(text string) string {
 			if name != word {
 				continue
 			}
-			buildedSticker := buildKittySticker(name)
+			buildedSticker := buildKittySticker(name, "png")
+			words[i] = buildedSticker
+		}
+
+		for _, s := range bttvStickers {
+			if s.Code != word {
+				continue
+			}
+			err := s.CheckIfExists()
+			if err != nil {
+				// TODO: handle me
+				continue
+			}
+
+			buildedSticker := buildKittySticker(s.Code, s.Ext)
 			words[i] = buildedSticker
 		}
 	}
 	return strings.Join(words, " ")
 }
 
-func buildKittySticker(name string) string {
-	path := filepath.Join(StickersPath, name+".png")
+func buildKittySticker(name, ext string) string {
+	path := filepath.Join(StickersPath, name+"."+ext)
 	return image.Build(name, path, image.NullColumns)
 
 }
