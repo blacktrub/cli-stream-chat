@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"cli-stream-chat/internal/badge"
 	"cli-stream-chat/internal/sticker"
 	"fmt"
 )
@@ -17,6 +18,7 @@ type Message struct {
 	Nickname string
 	Text     string
 	Platform Platform
+	Badges   map[string]int
 }
 
 func (m *Message) FullText() string {
@@ -25,7 +27,9 @@ func (m *Message) FullText() string {
 
 func (m *Message) ColorizedText() string {
 	text := sticker.FindAndReplace(m.Text)
-	return fmt.Sprintf("%s: %s", colorizer(m.Platform)(m.UserId, m.Nickname), text)
+	badges := badge.Show(m.Badges)
+	// TODO: maybe we need some space between badges and a nickname
+	return fmt.Sprintf("%s%s: %s", badges, colorizer(m.Platform)(m.UserId, m.Nickname), text)
 }
 
 func colorizer(p Platform) func(int, string) string {

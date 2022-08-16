@@ -1,65 +1,39 @@
-/*
-Kitty image protocol - https://sw.kovidgoyal.net/kitty/graphics-protocol/
-*/
-
 package sticker
 
 import (
-	b64 "encoding/base64"
-	"fmt"
-	"os"
+	"cli-stream-chat/internal/detector"
+	"cli-stream-chat/internal/image"
 	"path/filepath"
 	"strings"
 )
 
 // TODO: do not use relative path
-var StickersPath = "./pic"
+var StickersPath = "./pic/stickers"
 
-func stringToBase64(content []byte) string {
-	return b64.StdEncoding.EncodeToString(content)
-}
-
-func readStickerFile(name string) ([]byte, error) {
-	data, err := os.ReadFile(filepath.Join(StickersPath, name+".png"))
-	if err != nil {
-		return []byte{}, err
-	}
-	return data, nil
-}
-
-func buildKittyStiker(name string) string {
-	content, err := readStickerFile(name)
-	if err != nil {
-		return name
+func FindAndReplace(text string) string {
+	if !detector.IsKitty() {
+		return text
 	}
 
-	var out string
-	for {
-		var chunk []byte
-		var m string
-		chunkSize := 4096
-
-		if len(content) > chunkSize {
-			chunk = content[:chunkSize]
-			content = content[chunkSize:]
-			m = "1"
-		} else {
-			chunk = content
-			content = []byte{}
-			m = "0"
-		}
-
-		// TODO: delete hardcode
-		out = out + "\033_G"
-		out = out + fmt.Sprintf("m=%s,a=T,f=100,r=1;", m)
-		out = out + stringToBase64(chunk)
-		out = out + "\033\\"
-
-		if len(content) == 0 {
-			break
+	stickers := getSupportedNames()
+	words := strings.Split(text, " ")
+	for i := 0; i < len(words); i++ {
+		word := words[i]
+		for _, name := range stickers {
+			if name != word {
+				continue
+			}
+			buildedSticker := buildKittySticker(name)
+			words[i] = buildedSticker
 		}
 	}
-	return out
+	return strings.Join(words, " ")
+}
+
+func buildKittySticker(name string) string {
+	path := filepath.Join(StickersPath, name+".png")
+	return image.Build(name, path, image.NullColumns)
+
 }
 
 func getSupportedNames() []string {
@@ -325,29 +299,4 @@ func getSupportedNames() []string {
 		":(",
 		":)",
 	}
-}
-
-func FindAndReplace(text string) string {
-	if !isKitty() {
-		return text
-	}
-
-	stickers := getSupportedNames()
-	words := strings.Split(text, " ")
-	for i := 0; i < len(words); i++ {
-		word := words[i]
-		for _, name := range stickers {
-			if name != word {
-				continue
-			}
-			buildedSticker := buildKittyStiker(name)
-			words[i] = buildedSticker
-		}
-	}
-	return strings.Join(words, " ")
-}
-
-func isKitty() bool {
-	term := os.Getenv("TERM")
-	return term == "xterm-kitty"
 }
