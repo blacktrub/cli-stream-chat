@@ -25,12 +25,6 @@ import (
 // TODO: it's Twitch ID
 var btvUserId = 571574557
 
-type BTTVSticker struct {
-	id   string
-	Code string
-	Ext  string
-}
-
 type channelStickersResponse struct {
 	Avatar        string        `json:"avatar"`
 	Bots          []interface{} `json:"bots"`
@@ -54,6 +48,42 @@ type globalStickersResponse []struct {
 	ID        string `json:"id"`
 	ImageType string `json:"imageType"`
 	UserID    string `json:"userId"`
+}
+
+type BTTVSticker struct {
+	id   string
+	Code string
+	Ext  string
+}
+
+func (s *BTTVSticker) filename() string {
+	return filepath.Join(StickersPath, s.Code+"."+s.Ext)
+}
+
+func (s BTTVSticker) IsSupported() bool {
+	supported := [1]string{"png"}
+	for _, ext := range supported {
+		if ext == s.Ext {
+			return true
+		}
+	}
+	return false
+}
+
+func (s BTTVSticker) CheckIfExists() error {
+	downloadSticker(s)
+	_, err := os.ReadFile(s.filename())
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			err = downloadSticker(s)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 // TODO: quite the same code for fetch global and user's stickers
@@ -102,26 +132,6 @@ func GetBTTVStickers() []BTTVSticker {
 	stickers = append(stickers, getGlobalStickers()...)
 	stickers = append(stickers, getUserStickers(btvUserId)...)
 	return stickers
-}
-
-func (s *BTTVSticker) filename() string {
-	return filepath.Join(StickersPath, s.Code+"."+s.Ext)
-}
-
-func (s BTTVSticker) CheckIfExists() error {
-	downloadSticker(s)
-	_, err := os.ReadFile(s.filename())
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			err = downloadSticker(s)
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	return nil
 }
 
 func downloadSticker(s BTTVSticker) error {

@@ -32,6 +32,10 @@ func FindAndReplace(text string) string {
 			if s.Code != word {
 				continue
 			}
+			if !s.IsSupported() {
+				continue
+			}
+
 			err := s.CheckIfExists()
 			if err != nil {
 				// TODO: handle me
