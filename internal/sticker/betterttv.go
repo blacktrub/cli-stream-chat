@@ -22,9 +22,6 @@ import (
 	"path/filepath"
 )
 
-// TODO: it's Twitch ID
-var btvUserId = 571574557
-
 type channelStickersResponse struct {
 	Avatar        string        `json:"avatar"`
 	Bots          []interface{} `json:"bots"`
@@ -49,6 +46,12 @@ type globalStickersResponse []struct {
 	ImageType string `json:"imageType"`
 	UserID    string `json:"userId"`
 }
+
+type StickersCache struct {
+	stickers []BTTVSticker
+}
+
+var cache = StickersCache{[]BTTVSticker{}}
 
 type BTTVSticker struct {
 	id   string
@@ -107,8 +110,8 @@ func getGlobalStickers() []BTTVSticker {
 
 }
 
-func getUserStickers(userId int) []BTTVSticker {
-	resp, err := http.Get(fmt.Sprintf("https://api.betterttv.net/3/cached/users/twitch/%d", userId))
+func getUserStickers(userId string) []BTTVSticker {
+	resp, err := http.Get(fmt.Sprintf("https://api.betterttv.net/3/cached/users/twitch/%s", userId))
 	if err != nil {
 		return []BTTVSticker{}
 	}
@@ -126,11 +129,15 @@ func getUserStickers(userId int) []BTTVSticker {
 	return stickers
 }
 
-// TODO: cache it for a while
-func GetBTTVStickers() []BTTVSticker {
+func GetBTTVStickers(broadcasterId string) []BTTVSticker {
+	if len(cache.stickers) > 0 {
+		return cache.stickers
+	}
+
 	var stickers []BTTVSticker
 	stickers = append(stickers, getGlobalStickers()...)
-	stickers = append(stickers, getUserStickers(btvUserId)...)
+	stickers = append(stickers, getUserStickers(broadcasterId)...)
+	cache.stickers = stickers
 	return stickers
 }
 

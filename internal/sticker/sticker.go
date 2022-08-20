@@ -10,13 +10,13 @@ import (
 // TODO: do not use relative path
 var StickersPath = "./pic/stickers"
 
-func FindAndReplace(text string) string {
+func FindAndReplace(text string, broadcasterId string) string {
 	if !detector.IsKitty() {
 		return text
 	}
 
 	stickers := getSupportedNames()
-	bttvStickers := GetBTTVStickers()
+	bttvStickers := GetBTTVStickers(broadcasterId)
 	words := strings.Split(text, " ")
 	for i := 0; i < len(words); i++ {
 		word := words[i]
