@@ -14,11 +14,12 @@ const (
 )
 
 type Message struct {
-	UserId   int
-	Nickname string
-	Text     string
-	Platform Platform
-	Badges   map[string]int
+	UserId        int
+	Nickname      string
+	Text          string
+	Platform      Platform
+	Badges        map[string]int
+	BroadcasterId string
 }
 
 func (m *Message) FullText() string {
@@ -26,7 +27,7 @@ func (m *Message) FullText() string {
 }
 
 func (m *Message) ColorizedText() string {
-	text := sticker.FindAndReplace(m.Text)
+	text := sticker.FindAndReplace(m.Text, m.BroadcasterId)
 	badges := badge.Show(m.Badges)
 	// TODO: maybe we need some space between badges and a nickname
 	return fmt.Sprintf("%s%s: %s", badges, colorizer(m.Platform)(m.UserId, m.Nickname), text)

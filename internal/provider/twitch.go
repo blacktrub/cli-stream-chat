@@ -25,11 +25,12 @@ func (t *Twitch) Listen(ctx context.Context, out chan internal.Message) error {
 	t.client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		userId, _ := strconv.Atoi(message.User.ID)
 		out <- internal.Message{
-			UserId:   userId,
-			Badges:   message.User.Badges,
-			Nickname: message.User.DisplayName,
-			Text:     message.Message,
-			Platform: internal.TwitchPlatform,
+			UserId:        userId,
+			Badges:        message.User.Badges,
+			Nickname:      message.User.DisplayName,
+			Text:          message.Message,
+			Platform:      internal.TwitchPlatform,
+			BroadcasterId: message.RoomID,
 		}
 	})
 

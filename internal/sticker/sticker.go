@@ -10,12 +10,13 @@ import (
 // TODO: do not use relative path
 var StickersPath = "./pic/stickers"
 
-func FindAndReplace(text string) string {
+func FindAndReplace(text string, broadcasterId string) string {
 	if !detector.IsKitty() {
 		return text
 	}
 
 	stickers := getSupportedNames()
+	bttvStickers := GetBTTVStickers(broadcasterId)
 	words := strings.Split(text, " ")
 	for i := 0; i < len(words); i++ {
 		word := words[i]
@@ -23,15 +24,33 @@ func FindAndReplace(text string) string {
 			if name != word {
 				continue
 			}
-			buildedSticker := buildKittySticker(name)
+			buildedSticker := buildKittySticker(name, "png")
+			words[i] = buildedSticker
+		}
+
+		for _, s := range bttvStickers {
+			if s.Code != word {
+				continue
+			}
+			if !s.IsSupported() {
+				continue
+			}
+
+			err := s.CheckIfExists()
+			if err != nil {
+				// TODO: handle me
+				continue
+			}
+
+			buildedSticker := buildKittySticker(s.Code, s.Ext)
 			words[i] = buildedSticker
 		}
 	}
 	return strings.Join(words, " ")
 }
 
-func buildKittySticker(name string) string {
-	path := filepath.Join(StickersPath, name+".png")
+func buildKittySticker(name, ext string) string {
+	path := filepath.Join(StickersPath, name+"."+ext)
 	return image.Build(name, path, image.NullColumns)
 
 }
