@@ -2,6 +2,7 @@ package provider
 
 import (
 	"cli-stream-chat/internal"
+	"cli-stream-chat/internal/sticker"
 	"context"
 	"fmt"
 	"strconv"
@@ -23,6 +24,13 @@ func NewTwitchProvider(channel string) *Twitch {
 
 func (t *Twitch) Listen(ctx context.Context, out chan internal.Message) error {
 	t.client.OnPrivateMessage(func(message twitch.PrivateMessage) {
+		// TODO: move it somewhere
+		emotes := sticker.TwitchEmotes{}
+		for i := 0; i < len(message.Emotes); i++ {
+			e := message.Emotes[i]
+			emotes = append(emotes, sticker.TwitchEmote{ID: e.ID, Name: e.Name})
+		}
+
 		userId, _ := strconv.Atoi(message.User.ID)
 		out <- internal.Message{
 			UserId:        userId,
@@ -31,6 +39,7 @@ func (t *Twitch) Listen(ctx context.Context, out chan internal.Message) error {
 			Text:          message.Message,
 			Platform:      internal.TwitchPlatform,
 			BroadcasterId: message.RoomID,
+			Emotes:        emotes,
 		}
 	})
 
