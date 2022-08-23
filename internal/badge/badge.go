@@ -74,6 +74,8 @@ func getSupported() Badges {
 		return Badges{}
 	}
 	defer resp.Body.Close()
+
+	// TODO: we can use json.RawMessage here to make it prettier
 	data := map[string]map[string]map[string]map[string]BadgeResponseItem{}
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
