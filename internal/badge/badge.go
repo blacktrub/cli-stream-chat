@@ -24,21 +24,47 @@ func (b Badge) path() string {
 	return filepath.Join(BadgePath, b.Name)
 }
 
-type Badges []Badge
+func (b Badge) download() error {
+	resp, err := http.Get(b.url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	f, err := os.Create(b.path())
+	defer f.Close()
+	_, err = io.Copy(f, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
-func (b Badges) Len() int {
+type BadgeList []Badge
+
+func (b BadgeList) Len() int {
 	return len(b)
 }
 
-func (b Badges) Swap(i, j int) {
+func (b BadgeList) Swap(i, j int) {
 	b[i], b[j] = b[j], b[i]
 }
 
-func (b Badges) Less(i, j int) bool {
+func (b BadgeList) Less(i, j int) bool {
 	return b[i].Name[0] < b[j].Name[0]
 }
 
-var BadgePath = "./pic/badges"
+type Badges struct {
+	data BadgeList
+}
+
+func (b *Badges) get() BadgeList {
+	if len(b.data) > 0 {
+		return b.data
+	}
+	badges := b.fetch()
+	b.data = badges
+	return b.fetch()
+}
 
 type BadgeResponseItem struct {
 	ClickAction string      `json:"click_action"`
@@ -51,27 +77,10 @@ type BadgeResponseItem struct {
 	Title       string      `json:"title"`
 }
 
-func Show(badges map[string]int) string {
-	supported := getSupported()
-	var out string
-	for _, badge := range supported {
-		if _, ok := badges[string(badge.Name)]; ok {
-			err := downloadBadge(badge)
-			if err != nil {
-				// TODO: do something
-				continue
-			}
-			out = out + image.Build(badge.Name, badge.path(), 2)
-		}
-	}
-	return out
-}
-
-// TODO: cache me
-func getSupported() Badges {
+func (b *Badges) fetch() BadgeList {
 	resp, err := http.Get("https://badges.twitch.tv/v1/badges/global/display")
 	if err != nil {
-		return Badges{}
+		return BadgeList{}
 	}
 	defer resp.Body.Close()
 
@@ -79,10 +88,10 @@ func getSupported() Badges {
 	data := map[string]map[string]map[string]map[string]BadgeResponseItem{}
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		return Badges{}
+		return BadgeList{}
 	}
 
-	var badges Badges
+	var badges BadgeList
 	for key, value := range data["badge_sets"] {
 		versions := value["versions"]
 		one, exists := versions["1"]
@@ -95,17 +104,20 @@ func getSupported() Badges {
 	return badges
 }
 
-func downloadBadge(badge Badge) error {
-	resp, err := http.Get(badge.url)
-	if err != nil {
-		return err
+var BadgePath = "./pic/badges"
+var supportedBadges = Badges{}
+
+func Show(badges map[string]int) string {
+	var out string
+	for _, badge := range supportedBadges.get() {
+		if _, ok := badges[string(badge.Name)]; ok {
+			err := badge.download()
+			if err != nil {
+				// TODO: do something
+				continue
+			}
+			out = out + image.Build(badge.Name, badge.path(), 2)
+		}
 	}
-	defer resp.Body.Close()
-	f, err := os.Create(badge.path())
-	defer f.Close()
-	_, err = io.Copy(f, resp.Body)
-	if err != nil {
-		return err
-	}
-	return nil
+	return out
 }
