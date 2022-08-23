@@ -49,5 +49,4 @@ func FindAndReplace(text string, twitchEmotes TwitchEmotes, broadcasterId string
 
 func buildKittySticker(name, fn string) string {
 	return image.Build(name, fn, image.NullColumns)
-
 }

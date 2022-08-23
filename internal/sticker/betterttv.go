@@ -95,8 +95,12 @@ func (s BTTVEmote) CheckIfExists() error {
 	return nil
 }
 
+type BTTVEmotes struct {
+	data []BTTVEmote
+}
+
 // TODO: quite the same code for fetch global and user's stickers
-func getGlobalStickers() []BTTVEmote {
+func (b BTTVEmotes) getGlobal() []BTTVEmote {
 	resp, err := http.Get("https://api.betterttv.net/3/cached/emotes/global")
 	if err != nil {
 		return []BTTVEmote{}
@@ -116,7 +120,7 @@ func getGlobalStickers() []BTTVEmote {
 
 }
 
-func getUserStickers(userId string) []BTTVEmote {
+func (b BTTVEmotes) getUser(userId string) []BTTVEmote {
 	resp, err := http.Get(fmt.Sprintf("https://api.betterttv.net/3/cached/users/twitch/%s", userId))
 	if err != nil {
 		return []BTTVEmote{}
@@ -135,14 +139,20 @@ func getUserStickers(userId string) []BTTVEmote {
 	return stickers
 }
 
-func GetBTTVStickers(broadcasterId string) []BTTVEmote {
-	if len(cache.stickers) > 0 {
-		return cache.stickers
+func (b BTTVEmotes) get(broadcasterId string) []BTTVEmote {
+	if len(b.data) > 0 {
+		return b.data
 	}
 
-	var stickers []BTTVEmote
-	stickers = append(stickers, getGlobalStickers()...)
-	stickers = append(stickers, getUserStickers(broadcasterId)...)
-	cache.stickers = stickers
-	return stickers
+	var emotes []BTTVEmote
+	emotes = append(emotes, b.getGlobal()...)
+	emotes = append(emotes, b.getUser(broadcasterId)...)
+	b.data = emotes
+	return emotes
+}
+
+var bttvEmotes = BTTVEmotes{}
+
+func GetBTTVStickers(broadcasterId string) []BTTVEmote {
+	return bttvEmotes.get(broadcasterId)
 }
