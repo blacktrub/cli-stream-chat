@@ -17,6 +17,10 @@ type TwitchEmote struct {
 	Name string
 }
 
+func (e TwitchEmote) name() string {
+	return e.Name
+}
+
 func (e TwitchEmote) filename() string {
 	return filepath.Join(StickersPath, e.Name+".png")
 }

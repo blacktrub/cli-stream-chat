@@ -58,6 +58,10 @@ type BTTVEmote struct {
 	Ext  string
 }
 
+func (s BTTVEmote) name() string {
+	return s.Code
+}
+
 func (s BTTVEmote) filename() string {
 	return filepath.Join(StickersPath, s.Code+"."+s.Ext)
 }

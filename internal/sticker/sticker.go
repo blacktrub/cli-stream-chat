@@ -9,17 +9,26 @@ import (
 // TODO: do not use relative path
 var StickersPath = "./pic/stickers"
 
-func FindAndReplace(text string, emotes TwitchEmotes, broadcasterId string) string {
+func FindAndReplace(text string, twitchEmotes TwitchEmotes, broadcasterId string) string {
 	if !detector.IsKitty() {
 		return text
 	}
 
-	bttvStickers := GetBTTVStickers(broadcasterId)
+	bttvEmotes := GetBTTVStickers(broadcasterId)
+	var emotes []Emote
+	// TODO: ... doesn't work
+	for i := 0; i < len(twitchEmotes); i++ {
+		emotes = append(emotes, twitchEmotes[i])
+	}
+	for i := 0; i < len(bttvEmotes); i++ {
+		emotes = append(emotes, bttvEmotes[i])
+	}
+
 	words := strings.Split(text, " ")
 	for i := 0; i < len(words); i++ {
 		word := words[i]
 		for _, emote := range emotes {
-			if emote.Name != word {
+			if emote.name() != word {
 				continue
 			}
 			if !emote.IsSupported() {
@@ -31,25 +40,7 @@ func FindAndReplace(text string, emotes TwitchEmotes, broadcasterId string) stri
 				continue
 			}
 
-			buildedSticker := buildKittySticker(emote.Name, emote.filename())
-			words[i] = buildedSticker
-		}
-
-		for _, s := range bttvStickers {
-			if s.Code != word {
-				continue
-			}
-			if !s.IsSupported() {
-				continue
-			}
-
-			err := s.CheckIfExists()
-			if err != nil {
-				// TODO: handle me
-				continue
-			}
-
-			buildedSticker := buildKittySticker(s.Code, s.filename())
+			buildedSticker := buildKittySticker(emote.name(), emote.filename())
 			words[i] = buildedSticker
 		}
 	}
