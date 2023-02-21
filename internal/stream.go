@@ -17,7 +17,7 @@ type Stream struct {
 	pipes     []pipe
 }
 
-func NewStream() *Stream {
+func New() *Stream {
 	return &Stream{}
 }
 

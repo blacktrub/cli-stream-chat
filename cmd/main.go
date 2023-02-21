@@ -2,65 +2,52 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
-	"strings"
 
 	"cli-stream-chat/internal"
+	"cli-stream-chat/internal/config"
 	"cli-stream-chat/internal/pipe"
 	"cli-stream-chat/internal/provider"
 )
 
 func main() {
-	twitch := flag.String("twitch", "", "Twitch channel name")
-	youtubeLink := flag.String("youtube", "", "Youtube stream link")
-	logPath := flag.String("log", "", "Save stream log to file")
-	devices := flag.String("devices", "", "List tty devices")
-	flag.Parse()
+	cfg := config.New()
 
-	if *twitch == "" && *youtubeLink == "" {
-		log.Fatalln("Setup at least one provider")
+	err := cfg.Valid()
+	if err != nil {
+		log.Fatalln(err.Error())
 	}
 
-	ctx := context.Background()
-	s := internal.NewStream()
-
-	if *twitch != "" {
+	s := internal.New()
+	if cfg.Twitch != "" {
 		s.AddProvider(
-			provider.NewTwitchProvider(*twitch),
+			provider.NewTwitchProvider(cfg.Twitch),
 		)
 	}
 
-	if *youtubeLink != "" {
+	if cfg.YoutubeLink != "" {
 		s.AddProvider(
-			provider.NewYoutubeProvider(*youtubeLink),
+			provider.NewYoutubeProvider(cfg.YoutubeLink),
 		)
-	}
-
-	if len(s.GetProviders()) == 0 {
-		log.Fatalln("Setup at least one provider")
 	}
 
 	s.AddPipe(
 		&pipe.Stdout{},
 	)
 
-	if *logPath != "" {
-		// TODO: validate log path
+	if cfg.LogPath != "" {
 		s.AddPipe(
-			&pipe.Log{Path: *logPath},
+			&pipe.Log{Path: cfg.LogPath},
 		)
 	}
 
-	if *devices != "" {
-		deviceArr := strings.Split(*devices, ",")
-		for i := 0; i < len(deviceArr); i++ {
-			s.AddPipe(
-				&pipe.Device{Path: deviceArr[i]},
-			)
-		}
+	for i := 0; i < len(cfg.Devices); i++ {
+		s.AddPipe(
+			&pipe.Device{Path: cfg.Devices[i]},
+		)
 	}
 
+	ctx := context.Background()
 	if err := s.Run(ctx); err != nil {
 		log.Fatal(err)
 	}
