@@ -20,6 +20,7 @@ type Message struct {
 	Platform      Platform
 	Badges        map[string]int
 	BroadcasterId string
+	Emotes        sticker.TwitchEmotes
 }
 
 func (m *Message) FullText() string {
@@ -27,7 +28,7 @@ func (m *Message) FullText() string {
 }
 
 func (m *Message) ColorizedText() string {
-	text := sticker.FindAndReplace(m.Text, m.BroadcasterId)
+	text := sticker.FindAndReplace(m.Text, m.Emotes, m.BroadcasterId)
 	badges := badge.Show(m.Badges)
 	// TODO: maybe we need some space between badges and a nickname
 	return fmt.Sprintf("%s%s: %s", badges, colorizer(m.Platform)(m.UserId, m.Nickname), text)

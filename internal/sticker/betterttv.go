@@ -16,7 +16,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -48,22 +47,30 @@ type globalStickersResponse []struct {
 }
 
 type StickersCache struct {
-	stickers []BTTVSticker
+	stickers []BTTVEmote
 }
 
-var cache = StickersCache{[]BTTVSticker{}}
+var cache = StickersCache{[]BTTVEmote{}}
 
-type BTTVSticker struct {
+type BTTVEmote struct {
 	id   string
 	Code string
 	Ext  string
 }
 
-func (s *BTTVSticker) filename() string {
+func (s BTTVEmote) name() string {
+	return s.Code
+}
+
+func (s BTTVEmote) filename() string {
 	return filepath.Join(StickersPath, s.Code+"."+s.Ext)
 }
 
-func (s BTTVSticker) IsSupported() bool {
+func (s BTTVEmote) path() string {
+	return fmt.Sprintf("https://cdn.betterttv.net/emote/%s/2x", s.id)
+}
+
+func (s BTTVEmote) IsSupported() bool {
 	supported := [1]string{"png"}
 	for _, ext := range supported {
 		if ext == s.Ext {
@@ -73,12 +80,11 @@ func (s BTTVSticker) IsSupported() bool {
 	return false
 }
 
-func (s BTTVSticker) CheckIfExists() error {
-	downloadSticker(s)
+func (s BTTVEmote) CheckIfExists() error {
 	_, err := os.ReadFile(s.filename())
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			err = downloadSticker(s)
+			err = Download(s)
 			if err != nil {
 				return err
 			}
@@ -89,69 +95,64 @@ func (s BTTVSticker) CheckIfExists() error {
 	return nil
 }
 
+type BTTVEmotes struct {
+	data []BTTVEmote
+}
+
 // TODO: quite the same code for fetch global and user's stickers
-func getGlobalStickers() []BTTVSticker {
+func (b BTTVEmotes) getGlobal() []BTTVEmote {
 	resp, err := http.Get("https://api.betterttv.net/3/cached/emotes/global")
 	if err != nil {
-		return []BTTVSticker{}
+		return []BTTVEmote{}
 	}
 	defer resp.Body.Close()
 	var data globalStickersResponse
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		return []BTTVSticker{}
+		return []BTTVEmote{}
 	}
-	var stickers []BTTVSticker
+	var stickers []BTTVEmote
 	for i := 0; i < len(data); i++ {
 		s := data[i]
-		stickers = append(stickers, BTTVSticker{s.ID, s.Code, s.ImageType})
+		stickers = append(stickers, BTTVEmote{s.ID, s.Code, s.ImageType})
 	}
 	return stickers
 
 }
 
-func getUserStickers(userId string) []BTTVSticker {
+func (b BTTVEmotes) getUser(userId string) []BTTVEmote {
 	resp, err := http.Get(fmt.Sprintf("https://api.betterttv.net/3/cached/users/twitch/%s", userId))
 	if err != nil {
-		return []BTTVSticker{}
+		return []BTTVEmote{}
 	}
 	defer resp.Body.Close()
 	var data channelStickersResponse
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		return []BTTVSticker{}
+		return []BTTVEmote{}
 	}
-	var stickers []BTTVSticker
+	var stickers []BTTVEmote
 	for i := 0; i < len(data.SharedEmotes); i++ {
 		s := data.SharedEmotes[i]
-		stickers = append(stickers, BTTVSticker{s.ID, s.Code, s.ImageType})
+		stickers = append(stickers, BTTVEmote{s.ID, s.Code, s.ImageType})
 	}
 	return stickers
 }
 
-func GetBTTVStickers(broadcasterId string) []BTTVSticker {
-	if len(cache.stickers) > 0 {
-		return cache.stickers
+func (b BTTVEmotes) get(broadcasterId string) []BTTVEmote {
+	if len(b.data) > 0 {
+		return b.data
 	}
 
-	var stickers []BTTVSticker
-	stickers = append(stickers, getGlobalStickers()...)
-	stickers = append(stickers, getUserStickers(broadcasterId)...)
-	cache.stickers = stickers
-	return stickers
+	var emotes []BTTVEmote
+	emotes = append(emotes, b.getGlobal()...)
+	emotes = append(emotes, b.getUser(broadcasterId)...)
+	b.data = emotes
+	return emotes
 }
 
-func downloadSticker(s BTTVSticker) error {
-	resp, err := http.Get(fmt.Sprintf("https://cdn.betterttv.net/emote/%s/2x", s.id))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	f, err := os.Create(s.filename())
-	defer f.Close()
-	_, err = io.Copy(f, resp.Body)
-	if err != nil {
-		return err
-	}
-	return nil
+var bttvEmotes = BTTVEmotes{}
+
+func GetBTTVStickers(broadcasterId string) []BTTVEmote {
+	return bttvEmotes.get(broadcasterId)
 }
