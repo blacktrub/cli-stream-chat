@@ -36,9 +36,12 @@ func main() {
 	)
 
 	if cfg.LogPath != "" {
-		s.AddPipe(
-			&pipe.Log{Path: cfg.LogPath},
-		)
+		// TODO: err says: handle me
+		file, _ := pipe.GetFile(cfg.LogPath)
+		defer file.Close()
+
+		log := pipe.NewLog(file)
+		s.AddPipe(log)
 	}
 
 	for i := 0; i < len(cfg.Devices); i++ {

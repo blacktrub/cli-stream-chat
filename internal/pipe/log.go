@@ -8,36 +8,33 @@ import (
 )
 
 type Log struct {
-	Path string
+	f *os.File
 }
 
-func (s *Log) filename() string {
-	year, month, day := time.Now().Date()
-	return fmt.Sprintf("%d-%d-%d.log", year, month, day)
-}
-
-func (s *Log) fullpath() string {
-	return s.Path + "/" + s.filename()
+func NewLog(f *os.File) *Log {
+	return &Log{f: f}
 }
 
 func (s *Log) Write(m internal.Message) error {
-	// TODO: init log with file once, so we don't check file on every write
-	file, err := getOrCreateFile(s.fullpath())
-	defer file.Close()
-	if err != nil {
-		return fmt.Errorf("problem when open file: %w", err)
-	}
-	_, err = file.WriteString(m.FullText() + "\n")
+	_, err := s.f.WriteString(m.FullText() + "\n")
 	if err != nil {
 		return fmt.Errorf("problem with write to file: %w", err)
 	}
 	return nil
 }
 
-func getOrCreateFile(path string) (*os.File, error) {
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+// TODO: move it somewhere?
+func GetFile(path string) (*os.File, error) {
+	fullPath := getFileName(path)
+	file, err := os.OpenFile(fullPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return file, err
 	}
 	return file, nil
+}
+
+func getFileName(path string) string {
+	year, month, day := time.Now().Date()
+	name := fmt.Sprintf("%d-%d-%d.log", year, month, day)
+	return path + "/" + name
 }

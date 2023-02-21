@@ -1,6 +1,8 @@
 package provider
 
 import (
+	// TODO: what the fuck is going on there
+	// TODO: it doesn't work without a special name for the package
 	int "cli-stream-chat/internal"
 	"cli-stream-chat/internal/sticker"
 	"context"
