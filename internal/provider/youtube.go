@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"cli-stream-chat/internal"
+	"cli-stream-chat/internal/msg"
 	"context"
 	"fmt"
 
@@ -9,7 +9,7 @@ import (
 )
 
 type Youtube struct {
-	stream string // youtube stream link
+	stream string
 }
 
 func NewYoutubeProvider(stream string) *Youtube {
@@ -18,7 +18,7 @@ func NewYoutubeProvider(stream string) *Youtube {
 	}
 }
 
-func (y *Youtube) Listen(ctx context.Context, out chan internal.Message) error {
+func (y *Youtube) Listen(ctx context.Context, out chan msg.Message) error {
 	continuation, cfg, err := yt.ParseInitialData(y.stream)
 	if err != nil {
 		return fmt.Errorf("youtube error: %w", err)
@@ -29,12 +29,8 @@ func (y *Youtube) Listen(ctx context.Context, out chan internal.Message) error {
 			return fmt.Errorf("youtube error: %w", err)
 		}
 		continuation = newContinuation
-		for _, msg := range chat {
-			out <- internal.Message{
-				Nickname: msg.AuthorName,
-				Text:     msg.Message,
-				Platform: internal.YoutubePlatform,
-			}
+		for _, m := range chat {
+			out <- *msg.NewYoutube(m.AuthorName, m.Message)
 		}
 	}
 }

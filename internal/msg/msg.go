@@ -1,6 +1,7 @@
-package internal
+package msg
 
 import (
+	"cli-stream-chat/internal"
 	"cli-stream-chat/internal/badge"
 	"cli-stream-chat/internal/sticker"
 	"fmt"
@@ -9,10 +10,13 @@ import (
 type Platform string
 
 const (
+	// TODO: why is it here?
 	TwitchPlatform  Platform = "TW"
 	YoutubePlatform Platform = "YT"
 )
 
+// TODO: create an interface and two implementations
+// TODO: for twitch and youtube
 type Message struct {
 	UserId        int
 	Nickname      string
@@ -20,14 +24,45 @@ type Message struct {
 	Platform      Platform
 	Badges        map[string]int
 	BroadcasterId string
-	Emotes        sticker.TwitchEmotes
+	// TODO: do not use own type for a slice there
+	Emotes sticker.TwitchEmotes
+}
+
+func NewTwitch(
+	userId int,
+	nickname string,
+	text string,
+	badges map[string]int,
+	boId string,
+	emotes sticker.TwitchEmotes,
+) *Message {
+	return &Message{
+		UserId:        userId,
+		Nickname:      nickname,
+		Text:          text,
+		Platform:      TwitchPlatform,
+		Badges:        badges,
+		BroadcasterId: boId,
+		Emotes:        emotes,
+	}
+}
+
+func NewYoutube(
+	nickname string,
+	text string,
+) *Message {
+	return &Message{
+		Nickname: nickname,
+		Text:     text,
+		Platform: YoutubePlatform,
+	}
 }
 
 func (m *Message) FullText() string {
 	return fmt.Sprintf(fmt.Sprintf("%s: %s", m.Nickname, m.Text))
 }
 
-func (m *Message) ColorizedText() string {
+func (m *Message) PrettyText() string {
 	text := sticker.FindAndReplace(m.Text, m.Emotes, m.BroadcasterId)
 	badges := badge.Show(m.Badges)
 	// TODO: maybe we need some space between badges and a nickname
@@ -37,7 +72,7 @@ func (m *Message) ColorizedText() string {
 func colorizer(p Platform) func(int, string) string {
 	switch p {
 	case TwitchPlatform:
-		return Crl.Do
+		return internal.Crl.Do
 	case YoutubePlatform:
 		return makeRed
 	default:

@@ -3,7 +3,8 @@ package provider
 import (
 	// TODO: what the fuck is going on there
 	// TODO: it doesn't work without a special name for the package
-	int "cli-stream-chat/internal"
+
+	"cli-stream-chat/internal/msg"
 	"cli-stream-chat/internal/sticker"
 	"context"
 	"fmt"
@@ -24,7 +25,7 @@ func NewTwitchProvider(channel string) *Twitch {
 	}
 }
 
-func (t *Twitch) Listen(ctx context.Context, out chan int.Message) error {
+func (t *Twitch) Listen(ctx context.Context, out chan msg.Message) error {
 	t.client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		// TODO: move it somewhere
 		emotes := sticker.TwitchEmotes{}
@@ -34,15 +35,14 @@ func (t *Twitch) Listen(ctx context.Context, out chan int.Message) error {
 		}
 
 		userId, _ := strconv.Atoi(message.User.ID)
-		out <- int.Message{
-			UserId:        userId,
-			Badges:        message.User.Badges,
-			Nickname:      message.User.DisplayName,
-			Text:          message.Message,
-			Platform:      int.TwitchPlatform,
-			BroadcasterId: message.RoomID,
-			Emotes:        emotes,
-		}
+		out <- *msg.NewTwitch(
+			userId,
+			message.User.DisplayName,
+			message.Message,
+			message.User.Badges,
+			message.RoomID,
+			emotes,
+		)
 	})
 
 	t.client.Join(t.channel)

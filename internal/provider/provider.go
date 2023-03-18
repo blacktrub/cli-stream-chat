@@ -1,15 +1,16 @@
-package internal
+package provider
 
 import (
+	"cli-stream-chat/internal/msg"
 	"context"
 )
 
 type provider interface {
-	Listen(context.Context, chan Message) error
+	Listen(context.Context, chan msg.Message) error
 }
 
 type pipe interface {
-	Write(Message) error
+	Write(msg.Message) error
 }
 
 type Stream struct {
@@ -20,7 +21,6 @@ type Stream struct {
 func New() *Stream {
 	return &Stream{}
 }
-
 func (s *Stream) AddProvider(providers ...provider) {
 	for _, p := range providers {
 		s.providers = append(s.providers, p)
@@ -38,7 +38,7 @@ func (s *Stream) AddPipe(pipes ...pipe) {
 }
 
 func (s *Stream) Run(ctx context.Context) error {
-	out := make(chan Message)
+	out := make(chan msg.Message)
 	errChan := make(chan error)
 	for _, p := range s.providers {
 		go func(p provider) {

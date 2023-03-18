@@ -1,7 +1,7 @@
 package pipe
 
 import (
-	"cli-stream-chat/internal"
+	"cli-stream-chat/internal/msg"
 	"fmt"
 	"os"
 	"time"
@@ -15,7 +15,7 @@ func NewLog(f *os.File) *Log {
 	return &Log{f: f}
 }
 
-func (s *Log) Write(m internal.Message) error {
+func (s *Log) Write(m msg.Message) error {
 	_, err := s.f.WriteString(m.FullText() + "\n")
 	if err != nil {
 		return fmt.Errorf("problem with write to file: %w", err)

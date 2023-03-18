@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"cli-stream-chat/internal"
 	"cli-stream-chat/internal/config"
 	"cli-stream-chat/internal/pipe"
 	"cli-stream-chat/internal/provider"
@@ -18,7 +17,7 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	s := internal.New()
+	s := provider.New()
 	if cfg.Twitch != "" {
 		s.AddProvider(
 			provider.NewTwitchProvider(cfg.Twitch),
