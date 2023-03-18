@@ -1,4 +1,4 @@
-package internal
+package color
 
 import (
 	"errors"
@@ -7,18 +7,16 @@ import (
 	"sync"
 )
 
-type Colorizer struct {
+type MakePretty struct {
 	mem map[int]int
 	mu  sync.Mutex
 }
 
-func (c *Colorizer) setUserColor(userId int, color int) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.mem[userId] = color
+func NewPretty() *MakePretty {
+	return &MakePretty{mem: map[int]int{}}
 }
 
-func (c *Colorizer) Do(userId int, nickname string) string {
+func (c *MakePretty) Colorize(userId int, nickname string) string {
 	userColor, err := c.getColor(userId)
 	if err != nil {
 		userColor = getRandomColor()
@@ -27,7 +25,13 @@ func (c *Colorizer) Do(userId int, nickname string) string {
 	return fmt.Sprintf("\033[1;%dm%s\033[0m", userColor, nickname)
 }
 
-func (c *Colorizer) getColor(userId int) (int, error) {
+func (c *MakePretty) setUserColor(userId int, color int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.mem[userId] = color
+}
+
+func (c *MakePretty) getColor(userId int) (int, error) {
 	for k, v := range c.mem {
 		if k == userId {
 			return v, nil
@@ -49,7 +53,3 @@ func getColors() []int {
 	}
 	return colors
 }
-
-// TODO: naming sucks
-// TODO: do not use as a global variable
-var Crl = Colorizer{make(map[int]int), sync.Mutex{}}

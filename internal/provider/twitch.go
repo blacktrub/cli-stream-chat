@@ -1,9 +1,7 @@
 package provider
 
 import (
-	// TODO: what the fuck is going on there
-	// TODO: it doesn't work without a special name for the package
-
+	"cli-stream-chat/internal/color"
 	"cli-stream-chat/internal/msg"
 	"cli-stream-chat/internal/sticker"
 	"context"
@@ -14,14 +12,16 @@ import (
 )
 
 type Twitch struct {
-	client  *twitch.Client
-	channel string // twitch channel name
+	client    *twitch.Client
+	channel   string // twitch channel name
+	colorizer msg.Colorizer
 }
 
 func NewTwitchProvider(channel string) *Twitch {
 	return &Twitch{
-		channel: channel,
-		client:  twitch.NewAnonymousClient(),
+		channel:   channel,
+		client:    twitch.NewAnonymousClient(),
+		colorizer: color.NewPretty(),
 	}
 }
 
@@ -42,6 +42,7 @@ func (t *Twitch) Listen(ctx context.Context, out chan msg.Message) error {
 			message.User.Badges,
 			message.RoomID,
 			emotes,
+			t.colorizer,
 		)
 	})
 
