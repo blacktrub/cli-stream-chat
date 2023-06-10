@@ -32,6 +32,9 @@ func (c *MakePretty) setUserColor(userId int, color int) {
 }
 
 func (c *MakePretty) getColor(userId int) (int, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	for k, v := range c.mem {
 		if k == userId {
 			return v, nil
